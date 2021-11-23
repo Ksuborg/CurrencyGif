@@ -17,11 +17,18 @@ import java.util.Random;
 @Controller
 @RequestMapping("/currency")
 public class MainController {
-    @Autowired
     CurrencyService currencyService;
+    GifService gifService;
 
     @Autowired
-    GifService gifService;
+    public void setCurrencyService(CurrencyService currencyService) {
+        this.currencyService = currencyService;
+    }
+
+    @Autowired
+    public void setGifService(GifService gifService) {
+        this.gifService = gifService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getInfo() {
