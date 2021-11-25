@@ -1,20 +1,22 @@
 package com.example.currency.controller;
 
 import com.example.currency.Constants;
-import com.example.currency.feign.CurrencyService;
-import com.example.currency.feign.GifService;
+import com.example.currency.Utils;
+import com.example.currency.client.CurrencyService;
+import com.example.currency.client.GifService;
 import com.example.currency.response.Currency;
 import com.example.currency.response.Gif;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.Random;
 
-@Controller
+@RestController
 @RequestMapping("/currency")
 public class MainController {
     CurrencyService currencyService;
@@ -30,16 +32,30 @@ public class MainController {
         this.gifService = gifService;
     }
 
-    @GetMapping
+    @GetMapping()
     public ResponseEntity<?> getInfo() {
-        Currency currencyUSDToday = currencyService.checkDollarToday();
-        Currency currencyUSDYesterday = currencyService.checkDollarYesterday(LocalDate.now().minusDays(1).toString());
-        Double dollarToday = currencyUSDToday.getRates().get(Constants.ISO_RUB);
-        Double dollarYesterday = currencyUSDYesterday.getRates().get(Constants.ISO_RUB);
-        Gif gif = (dollarToday > dollarYesterday) ? gifService.getGoodGif() : gifService.getBadGif();
+        String urlGif = getURLGif(Constants.ISO_RUB);
+        return ResponseEntity.ok(urlGif);
+    }
+
+    @GetMapping("/{symbols}")
+    public ResponseEntity<?> getInfo(@PathVariable("symbols") String symbols) {
+        if (Utils.chekSymbols(symbols)) {
+            return ResponseEntity.badRequest().body("invalid currency code");
+        }
+        String urlGif = getURLGif(symbols);
+        return ResponseEntity.ok(urlGif);
+    }
+
+    public String getURLGif(String symbols) {
+        Currency currencyUSDToday = currencyService.checkDollarToday(symbols);
+        Currency currencyUSDYesterday = currencyService.checkDollarYesterday(LocalDate.now().minusDays(1).toString(), symbols);
+        Double dollarToday = currencyUSDToday.getRates().get(symbols);
+        Double dollarYesterday = currencyUSDYesterday.getRates().get(symbols);
+
+        Gif gif = (dollarToday < dollarYesterday) ? gifService.getGoodGif() : gifService.getBadGif();
         Random random = new Random();
         int gifId = random.nextInt(Integer.parseInt(Constants.LIMIT_GIF));
-        String url = gif.getData()[gifId].getUrl();
-        return ResponseEntity.ok(url);
+        return gif.getData()[gifId].getUrl();
     }
 }

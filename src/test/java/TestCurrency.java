@@ -1,7 +1,8 @@
 import com.example.currency.Application;
+import com.example.currency.Constants;
+import com.example.currency.client.CurrencyService;
+import com.example.currency.client.GifService;
 import com.example.currency.controller.MainController;
-import com.example.currency.feign.CurrencyService;
-import com.example.currency.feign.GifService;
 import com.example.currency.response.Currency;
 import com.example.currency.response.Gif;
 import org.junit.jupiter.api.Test;
@@ -27,31 +28,35 @@ public class TestCurrency {
 
     @Test
     public void testMainController() {
-        Currency biggerRate = createCurrency(74.7);
-        Currency smallerRate = createCurrency(73.7);
+        Currency biggerRate = createCurrency(Constants.ISO_RUB, 74.7);
+        Currency smallerRate = createCurrency(Constants.ISO_RUB,73.7);
         Mockito.when(gifService.getGoodGif()).thenReturn(createGif("good"));
         Mockito.when(gifService.getBadGif()).thenReturn(createGif("bad"));
 
         //the dollar has fallen
-        Mockito.when(currencyService.checkDollarToday()).thenReturn(smallerRate);
-        Mockito.when(currencyService.checkDollarYesterday(Mockito.any())).thenReturn(biggerRate);
+        Mockito.when(currencyService.checkDollarToday(Mockito.any())).thenReturn(smallerRate);
+        Mockito.when(currencyService.checkDollarYesterday(Mockito.any(), Mockito.any())).thenReturn(biggerRate);
 
-        String resultB = mainController.getInfo().getBody().toString();
+        String resultGood = mainController.getInfo().getBody().toString();
+        String resultGoodParam = mainController.getInfo(Constants.ISO_RUB).getBody().toString();
 
-        assertThat(resultB).isEqualTo("bad");
+        assertThat(resultGood).isEqualTo("good");
+        assertThat(resultGoodParam).isEqualTo("good");
 
         //the dollar rose
-        Mockito.when(currencyService.checkDollarToday()).thenReturn(biggerRate);
-        Mockito.when(currencyService.checkDollarYesterday(Mockito.any())).thenReturn(smallerRate);
+        Mockito.when(currencyService.checkDollarToday(Mockito.any())).thenReturn(biggerRate);
+        Mockito.when(currencyService.checkDollarYesterday(Mockito.any(), Mockito.any())).thenReturn(smallerRate);
 
-        String resultG = mainController.getInfo().getBody().toString();
+        String resultBad = mainController.getInfo().getBody().toString();
+        String resultBadParam = mainController.getInfo(Constants.ISO_RUB).getBody().toString();
 
-        assertThat(resultG).isEqualTo("good");
+        assertThat(resultBad).isEqualTo("bad");
+        assertThat(resultBadParam).isEqualTo("bad");
     }
 
-    public Currency createCurrency(Double rate) {
+    public Currency createCurrency(String code, Double rate) {
         Currency currency = new Currency();
-        currency.setRates("RUB", rate);
+        currency.setRates(code, rate);
         return currency;
     }
 

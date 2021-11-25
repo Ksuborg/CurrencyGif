@@ -13,7 +13,7 @@ public class Currency {
         return this.rates;
     }
 
-    public void setRates(String name, Double value) {
-        this.rates.put(name, value);
+    public void setRates(String key, Double value) {
+        this.rates.put(key, value);
     }
 }
