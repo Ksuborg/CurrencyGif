@@ -44,16 +44,19 @@ public class MainController {
             return ResponseEntity.badRequest().body("invalid currency code");
         }
         String urlGif = getURLGif(symbols);
-        return ResponseEntity.ok(urlGif);
+        return urlGif.equals("invalid currency code") ? ResponseEntity.badRequest().body(urlGif) : ResponseEntity.ok(urlGif);
     }
 
     public String getURLGif(String symbols) {
         Currency currencyUSDToday = currencyService.checkDollarToday(symbols);
         Currency currencyUSDYesterday = currencyService.checkDollarYesterday(LocalDate.now().minusDays(1).toString(), symbols);
+        if (currencyUSDToday.getRates().size() == 0 && currencyUSDYesterday.getRates().size() == 0) {
+            return "invalid currency code";
+        }
         Double dollarToday = currencyUSDToday.getRates().get(symbols);
         Double dollarYesterday = currencyUSDYesterday.getRates().get(symbols);
 
-        Gif gif = (dollarToday < dollarYesterday) ? gifService.getGoodGif() : gifService.getBadGif();
+        Gif gif = (dollarToday < dollarYesterday) ? gifService.getGif("rich") : gifService.getGif("broke");
         Random random = new Random();
         int gifId = random.nextInt(Integer.parseInt(Constants.LIMIT_GIF));
         return gif.getData()[gifId].getUrl();

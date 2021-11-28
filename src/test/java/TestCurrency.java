@@ -30,8 +30,8 @@ public class TestCurrency {
     public void testMainController() {
         Currency biggerRate = createCurrency(Constants.ISO_RUB, 74.7);
         Currency smallerRate = createCurrency(Constants.ISO_RUB,73.7);
-        Mockito.when(gifService.getGoodGif()).thenReturn(createGif("good"));
-        Mockito.when(gifService.getBadGif()).thenReturn(createGif("bad"));
+        Mockito.when(gifService.getGif("rich")).thenReturn(createGif("good"));
+        Mockito.when(gifService.getGif("broke")).thenReturn(createGif("bad"));
 
         //the dollar has fallen
         Mockito.when(currencyService.checkDollarToday(Mockito.any())).thenReturn(smallerRate);
