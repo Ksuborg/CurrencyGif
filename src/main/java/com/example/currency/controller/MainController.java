@@ -1,7 +1,6 @@
 package com.example.currency.controller;
 
 import com.example.currency.Constants;
-import com.example.currency.Utils;
 import com.example.currency.client.CurrencyService;
 import com.example.currency.client.GifService;
 import com.example.currency.response.Currency;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/currency")
@@ -40,7 +40,7 @@ public class MainController {
 
     @GetMapping("/{symbols}")
     public ResponseEntity<?> getInfo(@PathVariable("symbols") String symbols) {
-        if (Utils.chekSymbols(symbols)) {
+        if (isValidCurrency(symbols)) {
             return ResponseEntity.badRequest().body("invalid currency code");
         }
         String urlGif = getURLGif(symbols);
@@ -60,5 +60,9 @@ public class MainController {
         Random random = new Random();
         int gifId = random.nextInt(Integer.parseInt(Constants.LIMIT_GIF));
         return gif.getData()[gifId].getUrl();
+    }
+
+    public boolean isValidCurrency(String symbols) {
+        return (symbols.length() != 3 || !Pattern.matches("[A-Z]+", symbols));
     }
 }
